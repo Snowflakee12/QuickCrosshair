@@ -1,10 +1,10 @@
 import sys, math
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QLabel, QComboBox,
-    QLineEdit, QPushButton, QGridLayout
+    QLineEdit, QPushButton, QGridLayout, QMessageBox
 )
 from PyQt5.QtCore import Qt, QPoint
-from PyQt5.QtGui import QPainter, QPen, QColor, QStandardItemModel, QStandardItem
+from PyQt5.QtGui import QPainter, QPen, QColor, QStandardItemModel, QStandardItem, QIcon
 
 projectiles = {
     "25mm Bushmaster HE": {"velocity": 1000, "gravity_modifier": 2},
@@ -12,15 +12,14 @@ projectiles = {
     "30mm 2A42 HE": {"velocity": 900, "gravity_modifier": 2},
     "DTB02 HE (ZBD04A)": {"velocity": 970, "gravity_modifier": 2},
     "DTB02 HE (ZBL08)": {"velocity": 950, "gravity_modifier": 2},
-    "DTB02-105 HE":{"velocity":1100,"gravity_modifier":2},
+    "DTB02-105 HE": {"velocity": 1100, "gravity_modifier": 2},
     "GPD-30 (BMP2M)": {"velocity": 230, "gravity_modifier": 1},
     "ZU-23-2": {"velocity": 980, "gravity_modifier": 2},
     "MK19": {"velocity": 230, "gravity_modifier": 1},
     "Grenade launcher": {"velocity": 76, "gravity_modifier": 1},
-    "OG-15V frag ": {"velocity": 290, "gravity_modifier": 1.2},
-    "2A70 frag ": {"velocity": 355, "gravity_modifier": 2},
-
-
+    "OG-15V frag": {"velocity": 290, "gravity_modifier": 1.2},
+    "2A70 frag": {"velocity": 355, "gravity_modifier": 2},
+    "ZIS-3 Fragmentation": {"velocity": 700, "gravity_modifier": 2},
 }
 
 projectiles_by_category = {
@@ -30,8 +29,8 @@ projectiles_by_category = {
         "30mm 2A42 HE",
         "DTB02 HE (ZBD04A)",
         "DTB02 HE (ZBL08)",
-        "GPD-30(BMP2M)",
-        "2A70 frag ",
+        "GPD-30 (BMP2M)",
+        "2A70 frag",
         "OG-15V frag",
         "DTB02-105 HE",
     ],
@@ -41,6 +40,7 @@ projectiles_by_category = {
     "Emplacement": [
         "ZU-23-2",
         "MK19",
+        "ZIS-3 Fragmentation",
     ],
 }
 
@@ -50,8 +50,8 @@ class CrosshairWindow(QWidget):
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.crosshair_size = 10
-        self.offset = QPoint(7,5)
-        self.resize(self.crosshair_size*2, self.crosshair_size*2)
+        self.offset = QPoint(7, 5)
+        self.resize(self.crosshair_size * 2, self.crosshair_size * 2)
         self.show()
 
     def setOffset(self, dx, dy):
@@ -79,21 +79,36 @@ class CrosshairWindow(QWidget):
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Calcul de visée pour Squad")
+        self.setWindowTitle("Aimbot Assist for Explosiv")
+        self.setWindowIcon(QIcon("icon.ico"))
         self.crosshairWindow = CrosshairWindow()
+
         centralWidget = QWidget()
         layout = QGridLayout()
-        
+
+  
         self.projectileCombo = QComboBox()
         self.populateCombo()
         self.projectileCombo.currentTextChanged.connect(self.changerProjectile)
-        
+
         self.vitesseEdit = QLineEdit()
         self.graviteEdit = QLineEdit()
         self.distanceEdit = QLineEdit()
         self.diffHauteurEdit = QLineEdit()
+
+    
+        self.zoomEdit = QLineEdit()
+        self.zoomEdit.setText("1")
+
         self.calculerBtn = QPushButton("Calculer le décalage")
-        
+        self.calculerBtn.clicked.connect(self.calculerDecalage)
+
+        self.toggleCrosshairBtn = QPushButton("Désactiver le crosshair")
+        self.toggleCrosshairBtn.setCheckable(True)
+        self.toggleCrosshairBtn.setChecked(True)  
+        self.toggleCrosshairBtn.clicked.connect(self.toggleCrosshair)
+
+
         layout.addWidget(QLabel("Projectile:"), 0, 0)
         layout.addWidget(self.projectileCombo, 0, 1)
         layout.addWidget(QLabel("Vitesse (m/s):"), 1, 0)
@@ -104,11 +119,14 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.distanceEdit, 3, 1)
         layout.addWidget(QLabel("Diff. d'altitude (m):"), 4, 0)
         layout.addWidget(self.diffHauteurEdit, 4, 1)
-        layout.addWidget(self.calculerBtn, 5, 0, 1, 2)
-        
+        layout.addWidget(QLabel("Zoom:"), 5, 0)
+        layout.addWidget(self.zoomEdit, 5, 1)
+        layout.addWidget(self.calculerBtn, 6, 0, 1, 2)
+        layout.addWidget(self.toggleCrosshairBtn, 7, 0, 1, 2)
+
         centralWidget.setLayout(layout)
         self.setCentralWidget(centralWidget)
-        self.calculerBtn.clicked.connect(self.calculerDecalage)
+
         self.changerProjectile(self.projectileCombo.currentText())
 
     def populateCombo(self):
@@ -148,26 +166,43 @@ class MainWindow(QMainWindow):
             dy = float(self.diffHauteurEdit.text())
         except ValueError:
             return
+
         try:
             A = (g * d**2) / (2 * v**2)
             B = -d
             C = A + dy
-            discriminant = B**2 - 4*A*C
+            discriminant = B**2 - 4 * A * C
             if discriminant < 0:
                 return
-            u = (-B - math.sqrt(discriminant)) / (2*A)
+            u = (-B - math.sqrt(discriminant)) / (2 * A)
             theta = math.atan(u)
         except Exception as e:
             print("Erreur dans le calcul:", e)
             return
+
+        try:
+            zoom_factor = float(self.zoomEdit.text())
+        except ValueError:
+            zoom_factor = 1.0
+
         FOV_v = 90
         screen_height = QApplication.primaryScreen().geometry().height()
         pixels_par_deg = screen_height / FOV_v
-        decalage_pixels = math.degrees(theta) * pixels_par_deg
+
+        decalage_pixels = math.degrees(theta) * pixels_par_deg * zoom_factor
         self.crosshairWindow.setOffset(0, decalage_pixels)
+
+    def toggleCrosshair(self, checked):
+        if checked:
+            self.crosshairWindow.show()
+            self.toggleCrosshairBtn.setText("Désactiver le crosshair")
+        else:
+            self.crosshairWindow.hide()
+            self.toggleCrosshairBtn.setText("Activer le crosshair")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    app.setWindowIcon(QIcon("icon.ico"))
     window = MainWindow()
     window.show()
     sys.exit(app.exec_())
