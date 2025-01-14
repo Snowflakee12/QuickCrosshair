@@ -22,8 +22,8 @@ class CrosshairWindow(QWidget):
         super().__init__()
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
         self.setAttribute(Qt.WA_TranslucentBackground)
-        self.crosshair_size = 20
-        self.offset = QPoint(0, 0)
+        self.crosshair_size = 10
+        self.offset = QPoint(7,5)
         self.resize(self.crosshair_size*2, self.crosshair_size*2)
         self.show()
 
@@ -86,6 +86,7 @@ class MainWindow(QMainWindow):
         gravite_base = 9.81
         self.graviteEdit.setText(str(projectile["gravity_modifier"] * gravite_base))
 
+
     def calculerDecalage(self):
         try:
             v = float(self.vitesseEdit.text())
@@ -106,7 +107,7 @@ class MainWindow(QMainWindow):
         except Exception as e:
             print("Erreur dans le calcul:", e)
             return
-        FOV_v = 60.0
+        FOV_v = 90
         screen_height = QApplication.primaryScreen().geometry().height()
         pixels_par_deg = screen_height / FOV_v
         decalage_pixels = math.degrees(theta) * pixels_par_deg
