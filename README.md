@@ -1,1 +1,1 @@
-IT's not working 100% there's an offset IDK where does it come from but it's bigger far away.
+Working best you should modify your screen settings somewhere in the code, line 239->242. And everything should be good. Be carefull some Projectil due to their MOA are really useless for artillery. 
