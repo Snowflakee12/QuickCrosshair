@@ -1,51 +1,60 @@
-import sys, math
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QComboBox, QLineEdit, QPushButton, QGridLayout, QMessageBox
-from PyQt5.QtCore import Qt, QPoint
-from PyQt5.QtGui import QPainter, QPen, QColor, QStandardItemModel, QStandardItem, QIcon
-
+import sys
+import math
+from PyQt5.QtWidgets import (
+    QApplication, QMainWindow, QWidget, QLabel, QComboBox, QVBoxLayout,
+    QDoubleSpinBox, QHBoxLayout, QPushButton
+)
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QPainter, QPen, QColor
 
 vehicles = {
     "IFV": {
         "BMD-1M": {
             "zoom_levels": [3.0],
+            "offset": {"x": 0, "y": -75},
             "projectiles": {
                 "OG-15V frag": {"velocity": 290, "gravity_modifier": 1.2},
             },
         },
         "BMD-4M & BMP-3M": {
             "zoom_levels": [2.5],
+            "offset": {"x": 0, "y": -0},
             "projectiles": {
                 "DTB02-100 HE": {"velocity": 355, "gravity_modifier": 2},
-                "3UOR6 HE": {"velocity": 900, "gravity_modifier": 2},
+                "3UOR6 HE": {"velocity": 900, "gravity_modifier": 1},
             },
         },
         "BMP-1": {
             "zoom_levels": [1.5],
+            "offset": {"x": 0, "y": 0},  
             "projectiles": {
                 "3UOR6 HE": {"velocity": 435, "gravity_modifier": 1.2},
             },
         },
-
         "BMP-2 & BMP-2M": {
             "zoom_levels": [1.5],
+            "offset": {"x": 0, "y": 0},
             "projectiles": {
                 "3UOR6 HE": {"velocity": 900, "gravity_modifier": 2},
             },
         },
         "BTR-82A": {
             "zoom_levels": [2],
+            "offset": {"x": 0, "y": 0},
             "projectiles": {
                 "3UOR6 HE": {"velocity": 900, "gravity_modifier": 2},
             },
         },
         "ZBL-08": {
             "zoom_levels": [2],
+            "offset": {"x": 0, "y": 0},
             "projectiles": {
                 "DTB02-30 HEI-T": {"velocity": 950, "gravity_modifier": 2},
             },
-        },         
+        },
         "ZBD-04A": {
             "zoom_levels": [2.5],
+            "offset": {"x": 0, "y": 0},
             "projectiles": {
                 "DTB02-100 HE": {"velocity": 355, "gravity_modifier": 2},
                 "DTB02-30 HEI-T": {"velocity": 230, "gravity_modifier": 2},
@@ -53,24 +62,28 @@ vehicles = {
         },
         "LAV-6": {
             "zoom_levels": [1.5],
+            "offset": {"x": 0, "y": 0},
             "projectiles": {
                 "MK210 HEI-T": {"velocity": 1000, "gravity_modifier": 2},
             },
         },
         "LAV-25": {
             "zoom_levels": [1],
+            "offset": {"x": 0, "y": 0},
             "projectiles": {
                 "MK210 HEI-T": {"velocity": 1000, "gravity_modifier": 2},
             },
         },
         "M2A3 et M7A3": {
             "zoom_levels": [3],
+            "offset": {"x": 0, "y": 0},
             "projectiles": {
                 "MK210 HEI-T": {"velocity": 1000, "gravity_modifier": 2},
             },
         },
         "Aslav-25": {
             "zoom_levels": [3],
+            "offset": {"x": 0, "y": 0},
             "projectiles": {
                 "MK210 HEI-T": {"velocity": 1000, "gravity_modifier": 2},
             },
@@ -79,6 +92,7 @@ vehicles = {
     "MBT & MGS": {
         "T72B3": {
             "zoom_levels": [4],
+            "offset": {"x": 0, "y": 0},
             "projectiles": {
                 "OF26 Frag": {"velocity": 1100, "gravity_modifier": 2},
                 "3OF82 Frag": {"velocity": 1100, "gravity_modifier": 2},
@@ -86,79 +100,90 @@ vehicles = {
         },
         "M1A2 & M1A1": {
             "zoom_levels": [3],
+            "offset": {"x": 0, "y": 0},
             "projectiles": {
                 "M830A1 HEAT": {"velocity": 1100, "gravity_modifier": 2},
             },
         },
         "ZTZ99A": {
             "zoom_levels": [4],
+            "offset": {"x": 0, "y": 0},
             "projectiles": {
                 "DTB12-125 Frag": {"velocity": 1100, "gravity_modifier": 2},
             },
         },
         "T-62": {
             "zoom_levels": [3.5],
+            "offset": {"x": 0, "y": 0},
             "projectiles": {
                 "OF-11 Frag": {"velocity": 1100, "gravity_modifier": 2},
             },
         },
         "ZTD-05": {
-            "zoom_levels": [3.5],
+            "zoom_levels": [7.5],
+            "offset": {"x": 0, "y": 0},
             "projectiles": {
                 "DTB02-105 Frag": {"velocity": 1100, "gravity_modifier": 2},
             },
-        },        
+        },
         "Sprut-SDM1": {
             "zoom_levels": [4],
+            "offset": {"x": 0, "y": 0},
             "projectiles": {
                 "3OF82 Frag": {"velocity": 1100, "gravity_modifier": 2},
             },
         },
         "M1128 MGS": {
             "zoom_levels": [3],
+            "offset": {"x": 0, "y": 0},
             "projectiles": {
                 "M456A2 HEAT": {"velocity": 1100, "gravity_modifier": 2},
             },
-        },          
+        },
     },
-    
     "APC": {
         "AAVP": {
             "zoom_levels": [1],
+            "offset": {"x": 0, "y": 0},
             "projectiles": {
                 "MK19": {"velocity": 230, "gravity_modifier": 1},
             },
         },
         "BRDM-UB32": {
             "zoom_levels": [1],
+            "offset": {"x": 0, "y": 0},
             "projectiles": {
-                "S-5": {"velocity": 300, "gravity_modifier": 1,"velocity_modifier":-50,"time":2},
+                "S-5": {"velocity": 300, "gravity_modifier": 1, "velocity_modifier": -50, "time": 2},
             },
-        },        
+        },
     },
     "Emplacement": {
         "ZU-23-2": {
             "zoom_levels": [1],
+            "offset": {"x": 0, "y": 0},
             "projectiles": {
                 "ZU-23-2": {"velocity": 980, "gravity_modifier": 2},
             },
         },
         "MK19": {
             "zoom_levels": [1],
+            "offset": {"x": 0, "y": 0},
             "projectiles": {
                 "MK19": {"velocity": 230, "gravity_modifier": 1},
             },
         },
         "ZIS3": {
             "zoom_levels": [3.7],
+            "offset": {"x": 0, "y": 0},
             "projectiles": {
                 "ZIS-3 Frag": {"velocity": 700, "gravity_modifier": 2},
             },
-        },        
+        },
     },
     "INF": {
         "Grenade launcher": {
             "zoom_levels": [1.0],
+            "offset": {"x": 0, "y": 0},
             "projectiles": {
                 "Grenade launcher": {"velocity": 76, "gravity_modifier": 1},
             },
@@ -166,186 +191,196 @@ vehicles = {
     },
 }
 
+def calculate_screen_offset(v, g, d, dy, resolutionh, resolutionv, FOVh_degrees, aspect_ratio):
+    inside_sqrt = v**4 - g * (g * d**2 + 2 * dy * v**2)
+    if inside_sqrt < 0:
+        return None, "Aucune solution balistique possible"
+    angle_low = math.atan((v**2 - math.sqrt(inside_sqrt)) / (g * d))
+    height_m = d * math.tan(angle_low)
+    FOVh = math.radians(FOVh_degrees)
+    FOVv = 2 * math.atan(math.tan(FOVh / 2) / aspect_ratio)
+    virtual_height = 2 * d * math.tan(FOVv / 2)
+    Conversion_pixel_to_height = resolutionv / virtual_height
+    decalage_pixels = height_m * Conversion_pixel_to_height
+    return decalage_pixels, math.degrees(angle_low)
+
 class CrosshairWindow(QWidget):
-    def __init__(self):
+    def __init__(self, offset_x, offset_y):
         super().__init__()
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.crosshair_size = 10
-        self.offset = QPoint(7, 5)
-        self.resize(self.crosshair_size * 2, self.crosshair_size * 2)
+        self.offset_x = offset_x
+        self.offset_y = offset_y
+        self.resize(200, 200)
+        self.move_to_center()
         self.show()
 
-    def setOffset(self, dx, dy):
-        self.offset = QPoint(int(dx), int(dy))
-        self.moveToOffset()
-        self.update()
-
-    def moveToOffset(self):
-        screen = QApplication.primaryScreen().geometry()
-        center = screen.center()
-        new_x = center.x() + self.offset.x() - self.crosshair_size
-        new_y = center.y() + self.offset.y() - self.crosshair_size
-        self.move(new_x, new_y)
+    def move_to_center(self):
+        screen_geometry = QApplication.primaryScreen().geometry()
+        center_x = screen_geometry.width() // 2
+        center_y = screen_geometry.height() // 2
+        self.move(center_x - 100 + int(self.offset_x), center_y - 100 + int(self.offset_y))
 
     def paintEvent(self, event):
         painter = QPainter(self)
         pen = QPen(QColor(255, 0, 0), 2)
         painter.setPen(pen)
-        mid = self.rect().center()
-        painter.drawLine(mid.x() - self.crosshair_size, mid.y(), mid.x() + self.crosshair_size, mid.y())
-        painter.drawLine(mid.x(), mid.y() - self.crosshair_size, mid.x(), mid.y() + self.crosshair_size)
+        center = self.rect().center()
+        painter.drawLine(center.x() - self.crosshair_size, center.y(),
+                         center.x() + self.crosshair_size, center.y())
+        painter.drawLine(center.x(), center.y() - self.crosshair_size,
+                         center.x(), center.y() + self.crosshair_size)
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Aimbot Assist for Explosiv")
-        self.setWindowIcon(QIcon("icon.ico"))
-        self.crosshairWindow = CrosshairWindow()
+        self.setWindowTitle("Calcul balistique")
+        self.crosshair = None
+
+        self.categoryComboBox = QComboBox()
+        self.vehicleComboBox = QComboBox()
+        self.projectileComboBox = QComboBox()
+        self.distanceInput = QDoubleSpinBox()
+        self.heightInput = QDoubleSpinBox()
+        self.zoomInput = QDoubleSpinBox()
+        self.toggleCrosshairButton = QPushButton("Activer réticule")
+        self.toggleCrosshairButton.setCheckable(True)
+        self.resultLabel = QLabel()
+
+        self.distanceInput.setRange(0, 100000)
+        self.distanceInput.setValue(1250)
+        self.heightInput.setRange(-10000, 10000)
+        self.heightInput.setValue(0)
+        self.zoomInput.setRange(0.1, 1000)
+        self.zoomInput.setDecimals(2)
+        self.zoomInput.setValue(1)
 
         centralWidget = QWidget()
-        layout = QGridLayout()
-
-        self.vehicleCombo = QComboBox()
-        self.projectileCombo = QComboBox()
-        self.zoomEdit = QLineEdit()
-
-        self.populateVehicleCombo()
-        self.vehicleCombo.currentTextChanged.connect(self.changerVehicule)
-
-        self.vitesseEdit = QLineEdit()
-        self.graviteEdit = QLineEdit()
-        self.distanceEdit = QLineEdit()
-        self.diffHauteurEdit = QLineEdit()
-
-        self.calculerBtn = QPushButton("Calculer le d\u00e9calage")
-        self.calculerBtn.clicked.connect(self.calculerDecalage)
-
-        self.toggleCrosshairBtn = QPushButton("D\u00e9sactiver le crosshair")
-        self.toggleCrosshairBtn.setCheckable(True)
-        self.toggleCrosshairBtn.setChecked(True)
-        self.toggleCrosshairBtn.clicked.connect(self.toggleCrosshair)
-
-        layout.addWidget(QLabel("Type de v\u00e9hicule:"), 0, 0)
-        layout.addWidget(self.vehicleCombo, 0, 1)
-        layout.addWidget(QLabel("Projectile:"), 1, 0)
-        layout.addWidget(self.projectileCombo, 1, 1)
-        layout.addWidget(QLabel("Vitesse (m/s):"), 2, 0)
-        layout.addWidget(self.vitesseEdit, 2, 1)
-        layout.addWidget(QLabel("Gravit\u00e9 (m/s\u00b2):"), 3, 0)
-        layout.addWidget(self.graviteEdit, 3, 1)
-        layout.addWidget(QLabel("Distance (m):"), 4, 0)
-        layout.addWidget(self.distanceEdit, 4, 1)
-        layout.addWidget(QLabel("Diff. d'altitude (m):"), 5, 0)
-        layout.addWidget(self.diffHauteurEdit, 5, 1)
-        layout.addWidget(QLabel("Zoom:"), 6, 0)
-        layout.addWidget(self.zoomEdit, 6, 1)
-        layout.addWidget(self.calculerBtn, 7, 0, 1, 2)
-        layout.addWidget(self.toggleCrosshairBtn, 8, 0, 1, 2)
-
-        centralWidget.setLayout(layout)
         self.setCentralWidget(centralWidget)
-        self.changerVehicule(self.vehicleCombo.currentText())
+        layout = QVBoxLayout(centralWidget)
 
-    def populateVehicleCombo(self):
-        model = QStandardItemModel()
-        for category, vehicle_data in vehicles.items():
-            header = QStandardItem(category + ":")
-            header.setFlags(Qt.NoItemFlags)
-            model.appendRow(header)
-            for vehicle in vehicle_data:
-                vehicle_item = QStandardItem("   " + vehicle)
-                model.appendRow(vehicle_item)
-        self.vehicleCombo.setModel(model)
+        layout.addWidget(QLabel("Catégorie:"))
+        layout.addWidget(self.categoryComboBox)
+        layout.addWidget(QLabel("Véhicule:"))
+        layout.addWidget(self.vehicleComboBox)
+        layout.addWidget(QLabel("Projectile:"))
+        layout.addWidget(self.projectileComboBox)
 
-    def changerVehicule(self, text):
-        text = text.strip()
-        if text.endswith(":"):
-            return
-        if text.startswith("   "):
-            text = text.strip()
-        for category, vehicle_data in vehicles.items():
-            if text in vehicle_data:
-                details = vehicle_data[text]
-                self.zoomEdit.setText(", ".join(map(str, details.get("zoom_levels", []))))
-                self.projectileCombo.clear()
-                if details.get("projectiles"):
-                    self.projectileCombo.addItems(details["projectiles"])
-                    self.projectileCombo.currentTextChanged.connect(self.changerProjectile)
-                    if self.projectileCombo.count() > 0:
-                        self.changerProjectile(self.projectileCombo.itemText(0))
-                else:
-                    QMessageBox.warning(self, "Erreur", "Aucun projectile disponible pour ce v\u00e9hicule.")
-                break
+        distanceLayout = QHBoxLayout()
+        distanceLayout.addWidget(QLabel("Distance (m):"))
+        distanceLayout.addWidget(self.distanceInput)
+        layout.addLayout(distanceLayout)
 
-    def changerProjectile(self, text):
-        text = text.strip()
-        if not text:
-            return
-        current_vehicle = self.vehicleCombo.currentText().strip()
-        for category, vehicle_data in vehicles.items():
-            for vehicle, details in vehicle_data.items():
-                if current_vehicle == vehicle:
-                    projectile_data = details["projectiles"].get(text)
-                    if projectile_data:
-                        self.vitesseEdit.setText(str(projectile_data["velocity"]))
-                        gravite_base = 9.78
-                        self.graviteEdit.setText(str(projectile_data["gravity_modifier"] * gravite_base))
-                    return
+        heightLayout = QHBoxLayout()
+        heightLayout.addWidget(QLabel("Différence de hauteur (m):"))
+        heightLayout.addWidget(self.heightInput)
+        layout.addLayout(heightLayout)
 
-    def calculerDecalage(self):
-        try:
-            v = float(self.vitesseEdit.text())
-            g = float(self.graviteEdit.text())
-            d = float(self.distanceEdit.text())
-            dy = float(self.diffHauteurEdit.text())
-            if v <= 0 or d <= 0:
-                raise ValueError("Les valeurs de vitesse et de distance doivent \u00eatre positives.")
-        except ValueError:
-            QMessageBox.warning(self, "Erreur", "Veuillez entrer des valeurs valides et positives.")
-            return
+        zoomLayout = QHBoxLayout()
+        zoomLayout.addWidget(QLabel("Zoom:"))
+        zoomLayout.addWidget(self.zoomInput)
+        layout.addLayout(zoomLayout)
 
-        try:
-            A = (g * d**2) / (2 * v**2)
-            B = -d
-            C = A + dy
-            discriminant = B**2 - 4 * A * C
-            if discriminant < 0:
-                QMessageBox.warning(self, "Erreur", "Le calcul du d\u00e9calage est impossible.")
-                return
-            if A == 0:
-                QMessageBox.warning(self, "Erreur", "Le calcul est impossible car A est nul.")
-                return
-            u = (-B - math.sqrt(discriminant)) / (2 * A)
-            theta = math.atan(u)
-        except Exception as e:
-            QMessageBox.warning(self, "Erreur", f"Erreur dans le calcul : {e}")
+        layout.addWidget(self.toggleCrosshairButton)
+        layout.addWidget(self.resultLabel)
+
+        self.categoryComboBox.addItems(vehicles.keys())
+        self.categoryComboBox.currentIndexChanged.connect(self.categoryChanged)
+        self.vehicleComboBox.currentIndexChanged.connect(self.vehicleChanged)
+        self.projectileComboBox.currentIndexChanged.connect(self.projectileChanged)
+        self.distanceInput.valueChanged.connect(self.projectileChanged)
+        self.heightInput.valueChanged.connect(self.projectileChanged)
+        self.zoomInput.valueChanged.connect(self.projectileChanged)
+        self.toggleCrosshairButton.toggled.connect(self.toggleCrosshair)
+
+        self.categoryChanged(0)
+
+    def categoryChanged(self, index):
+        cat = self.categoryComboBox.currentText()
+        self.vehicleComboBox.clear()
+        if cat:
+            self.vehicleComboBox.addItems(vehicles[cat].keys())
+            self.vehicleChanged(0)
+
+    def vehicleChanged(self, index):
+        cat = self.categoryComboBox.currentText()
+        veh = self.vehicleComboBox.currentText()
+        self.projectileComboBox.clear()
+        if cat and veh:
+            self.projectileComboBox.addItems(vehicles[cat][veh]["projectiles"].keys())
+            zoom_levels = vehicles[cat][veh]["zoom_levels"]
+            if zoom_levels:
+                self.zoomInput.setValue(zoom_levels[0])
+            self.projectileChanged(0)
+
+    def projectileChanged(self, index):
+        cat = self.categoryComboBox.currentText()
+        veh = self.vehicleComboBox.currentText()
+        proj = self.projectileComboBox.currentText()
+        if not (cat and veh and proj):
             return
 
-        try:
-            zoom_factor = float(self.zoomEdit.text())
-            if zoom_factor <= 0:
-                zoom_factor = 1.0
-        except ValueError:
-            zoom_factor = 1.0
+        veh_data = vehicles[cat][veh]
+        data = veh_data["projectiles"][proj]
+        base_v = data["velocity"]
+        if "velocity_modifier" in data:
+            base_v += data["velocity_modifier"]
+        gravity_modifier = data["gravity_modifier"]
 
-        FOV_v = 90 / zoom_factor
-        screen_height = QApplication.primaryScreen().geometry().height()
-        pixels_par_deg = screen_height / FOV_v
-        decalage_pixels = math.degrees(theta) * pixels_par_deg
-        self.crosshairWindow.setOffset(0, decalage_pixels)
+        offset = veh_data.get("offset", {"x": 0, "y": 0})
+        offset_x = offset.get("x", 0)
+        offset_y = offset.get("y", 0)
+
+        d = self.distanceInput.value()
+        dy = self.heightInput.value()
+        zoom_factor = self.zoomInput.value()
+
+        resolutionh = 2560
+        resolutionv = 1440
+        FOVh_degrees = 90
+        aspect_ratio = 16/9
+
+        g = 9.78 * gravity_modifier
+        v = base_v
+
+        decalage_pixels, angle_degrees = calculate_screen_offset(
+            v, g, d, dy, resolutionh, resolutionv, FOVh_degrees, aspect_ratio
+        )
+
+        if decalage_pixels is None:
+            result_text = angle_degrees
+        else:
+            # Appliquer le zoom après calcul
+            decalage_pixels *= zoom_factor
+            flight_time = d / (v * math.cos(math.radians(angle_degrees)))
+            result_text = (f"Angle de tir: {angle_degrees:.2f}°\n"
+                           f"Temps de vol: {flight_time:.2f} s\n"
+                           f"Décalage vertical en pixels: {decalage_pixels:.2f}")
+
+            if self.toggleCrosshairButton.isChecked():
+                if self.crosshair:
+                    self.crosshair.close()
+                self.crosshair = CrosshairWindow(offset_x, decalage_pixels + offset_y)
+            else:
+                if self.crosshair:
+                    self.crosshair.close()
+                    self.crosshair = None
+
+        self.resultLabel.setText(result_text)
 
     def toggleCrosshair(self, checked):
         if checked:
-            self.crosshairWindow.show()
-            self.toggleCrosshairBtn.setText("D\u00e9sactiver le crosshair")
+            self.toggleCrosshairButton.setText("Désactiver réticule")
+            self.projectileChanged(self.projectileComboBox.currentIndex())
         else:
-            self.crosshairWindow.hide()
-            self.toggleCrosshairBtn.setText("Activer le crosshair")
+            self.toggleCrosshairButton.setText("Activer réticule")
+            if self.crosshair:
+                self.crosshair.close()
+                self.crosshair = None
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    app.setWindowIcon(QIcon("icon.ico"))
     window = MainWindow()
     window.show()
     sys.exit(app.exec_())
