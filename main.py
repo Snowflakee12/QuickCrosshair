@@ -2,7 +2,7 @@ import sys
 import math
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QLabel, QComboBox, QVBoxLayout,
-    QDoubleSpinBox, QHBoxLayout, QPushButton
+    QDoubleSpinBox, QHBoxLayout, QPushButton, QSpinBox
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter, QPen, QColor
@@ -200,8 +200,8 @@ def calculate_screen_offset(v, g, d, dy, resolutionh, resolutionv, FOVh_degrees,
     FOVh = math.radians(FOVh_degrees)
     FOVv = 2 * math.atan(math.tan(FOVh / 2) / aspect_ratio)
     virtual_height = 2 * d * math.tan(FOVv / 2)
-    Conversion_pixel_to_height = resolutionv / virtual_height
-    decalage_pixels = height_m * Conversion_pixel_to_height
+    conversion = resolutionv / virtual_height
+    decalage_pixels = height_m * conversion
     return decalage_pixels, math.degrees(angle_low)
 
 class CrosshairWindow(QWidget):
@@ -244,10 +244,14 @@ class MainWindow(QMainWindow):
         self.distanceInput = QDoubleSpinBox()
         self.heightInput = QDoubleSpinBox()
         self.zoomInput = QDoubleSpinBox()
+        self.fovInput = QDoubleSpinBox()
+        self.resolutionHInput = QSpinBox()
+        self.resolutionVInput = QSpinBox()
         self.toggleCrosshairButton = QPushButton("Activer réticule")
         self.toggleCrosshairButton.setCheckable(True)
         self.resultLabel = QLabel()
 
+        # Configuration des spin boxes
         self.distanceInput.setRange(0, 100000)
         self.distanceInput.setValue(1250)
         self.heightInput.setRange(-10000, 10000)
@@ -255,6 +259,15 @@ class MainWindow(QMainWindow):
         self.zoomInput.setRange(0.1, 1000)
         self.zoomInput.setDecimals(2)
         self.zoomInput.setValue(1)
+
+        self.fovInput.setRange(10, 180)
+        self.fovInput.setDecimals(1)
+        self.fovInput.setValue(90)
+
+        self.resolutionHInput.setRange(1, 10000)
+        self.resolutionHInput.setValue(2560)
+        self.resolutionVInput.setRange(1, 10000)
+        self.resolutionVInput.setValue(1440)
 
         centralWidget = QWidget()
         self.setCentralWidget(centralWidget)
@@ -282,6 +295,18 @@ class MainWindow(QMainWindow):
         zoomLayout.addWidget(self.zoomInput)
         layout.addLayout(zoomLayout)
 
+        fovLayout = QHBoxLayout()
+        fovLayout.addWidget(QLabel("FOV horizontal (°):"))
+        fovLayout.addWidget(self.fovInput)
+        layout.addLayout(fovLayout)
+
+        resolutionLayout = QHBoxLayout()
+        resolutionLayout.addWidget(QLabel("Résolution horizontale:"))
+        resolutionLayout.addWidget(self.resolutionHInput)
+        resolutionLayout.addWidget(QLabel("Résolution verticale:"))
+        resolutionLayout.addWidget(self.resolutionVInput)
+        layout.addLayout(resolutionLayout)
+
         layout.addWidget(self.toggleCrosshairButton)
         layout.addWidget(self.resultLabel)
 
@@ -292,6 +317,9 @@ class MainWindow(QMainWindow):
         self.distanceInput.valueChanged.connect(self.projectileChanged)
         self.heightInput.valueChanged.connect(self.projectileChanged)
         self.zoomInput.valueChanged.connect(self.projectileChanged)
+        self.fovInput.valueChanged.connect(self.projectileChanged)
+        self.resolutionHInput.valueChanged.connect(self.projectileChanged)
+        self.resolutionVInput.valueChanged.connect(self.projectileChanged)
         self.toggleCrosshairButton.toggled.connect(self.toggleCrosshair)
 
         self.categoryChanged(0)
@@ -336,10 +364,11 @@ class MainWindow(QMainWindow):
         dy = self.heightInput.value()
         zoom_factor = self.zoomInput.value()
 
-        resolutionh = 2560
-        resolutionv = 1440
-        FOVh_degrees = 90
-        aspect_ratio = 16/9
+        # Récupération des paramètres personnalisables depuis l'interface
+        resolutionh = self.resolutionHInput.value()
+        resolutionv = self.resolutionVInput.value()
+        FOVh_degrees = self.fovInput.value()
+        aspect_ratio = resolutionh / resolutionv
 
         g = 9.78 * gravity_modifier
         v = base_v
